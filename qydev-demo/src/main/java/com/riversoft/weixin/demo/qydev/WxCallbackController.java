@@ -2,22 +2,25 @@ package com.riversoft.weixin.demo.qydev;
 
 import com.riversoft.weixin.common.decrypt.MessageDecryption;
 import com.riversoft.weixin.common.exception.WxRuntimeException;
+import com.riversoft.weixin.common.jsapi.JsAPISignature;
 import com.riversoft.weixin.common.message.XmlMessageHeader;
 import com.riversoft.weixin.demo.commons.DuplicatedMessageChecker;
 import com.riversoft.weixin.qy.base.CorpSetting;
+import com.riversoft.weixin.qy.jsapi.JsAPIs;
 import com.riversoft.weixin.qy.message.QyXmlMessages;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 /**
  * Created by exizhai on 10/7/2015.
  */
-@Controller
+@RestController
 public class WxCallbackController {
 
     private static Logger logger = LoggerFactory.getLogger(WxCallbackController.class);
@@ -84,6 +87,13 @@ public class WxCallbackController {
         }
 
         return "";
+    }
+
+    @RequestMapping(value = "/wx/test")
+    public String Test(){
+//        ClassUtils.getDefaultClassLoader().getResource("").getPath();
+//        JsAPISignature jsAPISignature =  JsAPIs.defaultJsAPIs().createJsAPIGroupSignature("http://baidu.com");
+        return ClassUtils.getDefaultClassLoader().getResource("").getPath();
     }
 
     private XmlMessageHeader qyDispatch(XmlMessageHeader xmlRequest) {

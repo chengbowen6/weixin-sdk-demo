@@ -1,6 +1,6 @@
 <CorpSetting>
-    <corpId>xxxxxxxxxxx</corpId>
-    <corpSecret>xxxxxxxxxxxxxx</corpSecret>
+    <corpId>wwbad5ff23a5224b17</corpId>
+    <corpSecret>uJoEzJlLxxMIcdq-tYOKQ91C44spBS3ifJqlUkXmxws</corpSecret>
     <!-- 可以指定自己的tokenHolderClass，继承与com.riversoft.weixin.common.AccessTokenHolder
     <tokenHolderClass>com.abc.Abc</tokenHolderClass>
     -->

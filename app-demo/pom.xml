@@ -55,6 +55,30 @@
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
         </dependency>
+        <dependency>
+            <groupId>cn.com.riversoft</groupId>
+            <artifactId>weixin-common</artifactId>
+            <version>RELEASE</version>
+        </dependency>
+        <dependency>
+            <groupId>cn.com.riversoft</groupId>
+            <artifactId>weixin-common</artifactId>
+            <version>RELEASE</version>
+        </dependency>
+        <dependency>
+            <groupId>cn.com.riversoft</groupId>
+            <artifactId>weixin-common</artifactId>
+            <version>RELEASE</version>
+        </dependency>
+        <dependency>
+            <groupId>cn.com.riversoft</groupId>
+            <artifactId>weixin-mp</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>cn.com.riversoft</groupId>
+            <artifactId>weixin-common</artifactId>
+            <version>RELEASE</version>
+        </dependency>
 
     </dependencies>
 
