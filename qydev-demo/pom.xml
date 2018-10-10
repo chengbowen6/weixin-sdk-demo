@@ -18,6 +18,7 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
+
         <dependency>
             <groupId>cn.com.riversoft</groupId>
             <artifactId>weixin-qydev</artifactId>

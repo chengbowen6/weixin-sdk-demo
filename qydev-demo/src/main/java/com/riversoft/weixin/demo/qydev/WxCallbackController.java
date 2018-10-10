@@ -1,5 +1,6 @@
 package com.riversoft.weixin.demo.qydev;
 
+import ch.qos.logback.core.rolling.helper.FileStoreUtil;
 import com.riversoft.weixin.common.decrypt.MessageDecryption;
 import com.riversoft.weixin.common.exception.WxRuntimeException;
 import com.riversoft.weixin.common.jsapi.JsAPISignature;
@@ -7,7 +8,14 @@ import com.riversoft.weixin.common.message.XmlMessageHeader;
 import com.riversoft.weixin.demo.commons.DuplicatedMessageChecker;
 import com.riversoft.weixin.qy.base.CorpSetting;
 import com.riversoft.weixin.qy.jsapi.JsAPIs;
+import com.riversoft.weixin.qy.media.Medias;
 import com.riversoft.weixin.qy.message.QyXmlMessages;
+import com.sun.imageio.plugins.common.ImageUtil;
+import org.apache.commons.io.FileUtils;
+import org.codehaus.jackson.JsonFactory;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.util.JSONPObject;
+import org.codehaus.jackson.type.JavaType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +24,12 @@ import org.springframework.stereotype.Controller;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.http.HttpServletRequest;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by exizhai on 10/7/2015.
@@ -89,13 +103,70 @@ public class WxCallbackController {
         return "";
     }
 
-    @RequestMapping(value = "/wx/test")
-    public String Test(){
-//        ClassUtils.getDefaultClassLoader().getResource("").getPath();
-//        JsAPISignature jsAPISignature =  JsAPIs.defaultJsAPIs().createJsAPIGroupSignature("http://baidu.com");
-        return ClassUtils.getDefaultClassLoader().getResource("").getPath();
+    @RequestMapping(value = "/wx/sigin")
+    public String Test(@RequestParam(value="url") String url,HttpServletRequest request){
+        String mapJakcson="";
+        Object object = request.getSession().getAttribute("mapJakcson");
+        if (object!=null){
+            return object.toString();
+        }else {
+            JsAPISignature jsAPISignature =  JsAPIs.defaultJsAPIs().createJsAPISignature(url);
+            try {
+                ObjectMapper mapper = new ObjectMapper();
+                mapJakcson=mapper.writeValueAsString(jsAPISignature);
+                request.getSession().setAttribute("mapJakcson",mapJakcson);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return mapJakcson;
     }
-
+    @RequestMapping(value = "/wx/upload")
+    public String upload(@RequestParam(value="param") String param,HttpServletRequest request){
+        String mapJakcson="";
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            JavaType javaType =  mapper.getTypeFactory().constructParametricType(ArrayList.class, Media.class);
+            List<Media> mediaList = mapper.readValue(param,javaType);
+            for (Media m: mediaList
+                 ) {
+                File file = Medias.defaultMedias().download(m.getServerid());
+                saveImg(file);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return mapJakcson;
+    }
+    private String saveImg(File file){
+        if (!file.exists()) {
+            return "文件为空";
+        }
+        // 获取文件名
+        String fileName = file.getName();
+        logger.info("上传的文件名为：" + fileName);
+        // 获取文件的后缀名
+        String suffixName = fileName.substring(fileName.lastIndexOf("."));
+        logger.info("上传的后缀名为：" + suffixName);
+        // 文件上传后的路径
+        String filePath = "E://test//";
+        // 解决中文问题，liunx下中文路径，图片显示问题
+        // fileName = UUID.randomUUID() + suffixName;
+        File dest = new File(filePath + fileName);
+        // 检测是否存在目录
+        if (!dest.getParentFile().exists()) {
+            dest.getParentFile().mkdirs();
+        }
+        try {
+            FileUtils.copyFile(file,dest);
+            return "上传成功";
+        } catch (IllegalStateException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return "";
+    }
     private XmlMessageHeader qyDispatch(XmlMessageHeader xmlRequest) {
         //添加处理逻辑
 
@@ -104,4 +175,25 @@ public class WxCallbackController {
         return null;
     }
 
+
+}
+class Media{
+    String id;
+    String serverid;
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getServerid() {
+        return serverid;
+    }
+
+    public void setServerid(String serverid) {
+        this.serverid = serverid;
+    }
 }
