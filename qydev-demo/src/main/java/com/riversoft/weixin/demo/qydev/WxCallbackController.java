@@ -6,10 +6,16 @@ import com.riversoft.weixin.common.exception.WxRuntimeException;
 import com.riversoft.weixin.common.jsapi.JsAPISignature;
 import com.riversoft.weixin.common.message.XmlMessageHeader;
 import com.riversoft.weixin.demo.commons.DuplicatedMessageChecker;
+import com.riversoft.weixin.demo.qydev.utils.Constant;
+import com.riversoft.weixin.demo.qydev.utils.FileUploadUtils;
 import com.riversoft.weixin.qy.base.CorpSetting;
+import com.riversoft.weixin.qy.contact.Users;
+import com.riversoft.weixin.qy.contact.user.ReadUser;
 import com.riversoft.weixin.qy.jsapi.JsAPIs;
 import com.riversoft.weixin.qy.media.Medias;
 import com.riversoft.weixin.qy.message.QyXmlMessages;
+import com.riversoft.weixin.qy.oauth2.QyOAuth2s;
+import com.riversoft.weixin.qy.oauth2.bean.QyUser;
 import com.sun.imageio.plugins.common.ImageUtil;
 import org.apache.commons.io.FileUtils;
 import org.codehaus.jackson.JsonFactory;
@@ -29,7 +35,9 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by exizhai on 10/7/2015.
@@ -121,9 +129,12 @@ public class WxCallbackController {
         }
         return mapJakcson;
     }
+
     @RequestMapping(value = "/wx/upload")
     public String upload(@RequestParam(value="param") String param,HttpServletRequest request){
         String mapJakcson="";
+        Map<String, File> fileMap = new HashMap<String, File>();
+        Map<String, String> textMap = new HashMap<String, String>();
         try {
             ObjectMapper mapper = new ObjectMapper();
             JavaType javaType =  mapper.getTypeFactory().constructParametricType(ArrayList.class, Media.class);
@@ -131,13 +142,34 @@ public class WxCallbackController {
             for (Media m: mediaList
                  ) {
                 File file = Medias.defaultMedias().download(m.getServerid());
-                saveImg(file);
+//                saveImg(file);
+                fileMap.put(file.getName(), file);
+
             }
+            String contentType = ".jpg";//image/png
+            mapJakcson= FileUploadUtils.formFileUpload(Constant.ORDER_UPLOAD_PIC, textMap, fileMap,contentType);
         } catch (IOException e) {
             e.printStackTrace();
         }
         return mapJakcson;
     }
+
+    //TODO 有问题的方法
+    @RequestMapping(value = "/wx/code")
+    public String auth(@RequestParam(value="code") String code,HttpServletRequest request){
+        String mapJakcson="";
+        QyUser qyUser = QyOAuth2s.defaultOAuth2s().userInfo(code);
+        String userid =QyOAuth2s.defaultOAuth2s().toUserId(qyUser.getOpenId());
+        ReadUser readUser = Users.defaultUsers().get(userid);
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            mapJakcson=mapper.writeValueAsString(readUser);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return mapJakcson;
+    }
+
     private String saveImg(File file){
         if (!file.exists()) {
             return "文件为空";
