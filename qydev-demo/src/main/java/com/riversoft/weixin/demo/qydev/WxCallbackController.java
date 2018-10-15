@@ -1,6 +1,7 @@
 package com.riversoft.weixin.demo.qydev;
 
 import ch.qos.logback.core.rolling.helper.FileStoreUtil;
+import com.riversoft.weixin.common.WxClient;
 import com.riversoft.weixin.common.decrypt.MessageDecryption;
 import com.riversoft.weixin.common.exception.WxRuntimeException;
 import com.riversoft.weixin.common.jsapi.JsAPISignature;
@@ -8,6 +9,7 @@ import com.riversoft.weixin.common.message.XmlMessageHeader;
 import com.riversoft.weixin.demo.commons.DuplicatedMessageChecker;
 import com.riversoft.weixin.demo.qydev.utils.Constant;
 import com.riversoft.weixin.demo.qydev.utils.FileUploadUtils;
+import com.riversoft.weixin.qy.QyWxClientFactory;
 import com.riversoft.weixin.qy.base.CorpSetting;
 import com.riversoft.weixin.qy.contact.Users;
 import com.riversoft.weixin.qy.contact.user.ReadUser;
@@ -159,11 +161,16 @@ public class WxCallbackController {
     public String auth(@RequestParam(value="code") String code,HttpServletRequest request){
         String mapJakcson="";
         QyUser qyUser = QyOAuth2s.defaultOAuth2s().userInfo(code);
+        String result = QyOAuth2s.defaultOAuth2s().toUserId(qyUser.getOpenId());
+        System.out.println(code);
+        System.out.println(result);
         String userid =QyOAuth2s.defaultOAuth2s().toUserId(qyUser.getOpenId());
-        ReadUser readUser = Users.defaultUsers().get(userid);
+        ReadUser readUser = Users.defaultUsers().get(result);
         try {
             ObjectMapper mapper = new ObjectMapper();
             mapJakcson=mapper.writeValueAsString(readUser);
+            System.out.println(mapJakcson);
+
         } catch (IOException e) {
             e.printStackTrace();
         }
