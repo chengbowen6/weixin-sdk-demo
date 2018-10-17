@@ -116,19 +116,21 @@ public class WxCallbackController {
     @RequestMapping(value = "/wx/sigin")
     public String Test(@RequestParam(value="url") String url,HttpServletRequest request){
         String mapJakcson="";
-        Object object = request.getSession().getAttribute("mapJakcson");
-        if (object!=null){
-            return object.toString();
-        }else {
+//        Object object = request.getSession().getAttribute("mapJakcson");
+//        if (object!=null){
+//            return object.toString();
+//        }else {
+//            url=url.split("[?]")[0];
+            url=url+"&state=1";
             JsAPISignature jsAPISignature =  JsAPIs.defaultJsAPIs().createJsAPISignature(url);
             try {
                 ObjectMapper mapper = new ObjectMapper();
                 mapJakcson=mapper.writeValueAsString(jsAPISignature);
-                request.getSession().setAttribute("mapJakcson",mapJakcson);
+//                request.getSession().setAttribute("mapJakcson",mapJakcson);
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        }
+//        }
         return mapJakcson;
     }
 
@@ -156,15 +158,43 @@ public class WxCallbackController {
         return mapJakcson;
     }
 
+    @RequestMapping(value = "/wx/uploadphoto")
+    public String uploadPhoto(@RequestParam(value="param") String param,HttpServletRequest request){
+        String mapJakcson="";
+        Map<String, File> fileMap = new HashMap<String, File>();
+        Map<String, String> textMap = new HashMap<String, String>();
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            JavaType javaType =  mapper.getTypeFactory().constructParametricType(ArrayList.class, Media.class);
+            List<Media> mediaList = mapper.readValue(param,javaType);
+            for (Media m: mediaList
+                    ) {
+                File file = Medias.defaultMedias().download(m.getServerid());
+//                saveImg(file);
+                fileMap.put(file.getName(), file);
+
+            }
+            String contentType = ".jpg";//image/png
+            mapJakcson= FileUploadUtils.formFileUpload(Constant.ORDER_UPLOAD_PIC, textMap, fileMap,contentType);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return mapJakcson;
+    }
+
     //TODO 有问题的方法
     @RequestMapping(value = "/wx/code")
     public String auth(@RequestParam(value="code") String code,HttpServletRequest request){
         String mapJakcson="";
         QyUser qyUser = QyOAuth2s.defaultOAuth2s().userInfo(code);
-        String result = QyOAuth2s.defaultOAuth2s().toUserId(qyUser.getOpenId());
+        String result="";
+        if (qyUser.getUserId()==null){
+            result =QyOAuth2s.defaultOAuth2s().toUserId(qyUser.getOpenId());
+        }else {
+            result=qyUser.getUserId();
+        }
         System.out.println(code);
         System.out.println(result);
-        String userid =QyOAuth2s.defaultOAuth2s().toUserId(qyUser.getOpenId());
         ReadUser readUser = Users.defaultUsers().get(result);
         try {
             ObjectMapper mapper = new ObjectMapper();
